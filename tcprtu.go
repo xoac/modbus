@@ -14,6 +14,21 @@ type RtuTcpClientHandler struct {
 	tcpRtuTransporer
 }
 
+// NewRTUClientHandler allocates and initializes a RTUClientHandler.
+func NewRtuTcpClientHandler(address string) *RtuTcpClientHandler {
+	handler := &RtuTcpClientHandler{}
+	handler.Address = address
+	handler.Timeout = tcpTimeout
+	handler.IdleTimeout = tcpIdleTimeout
+	return handler
+}
+
+// RTUClient creates RTU client with default handler and given connect string.
+func RtuTcpClient(address string) Client {
+	handler := NewRtuTcpClientHandler(address)
+	return NewClient(handler)
+}
+
 type tcpRtuTransporer struct {
 	// Connect string
 	Address string
