@@ -29,7 +29,7 @@ const (
 // TCPClientHandler implements Packager and Transporter interface.
 type TCPClientHandler struct {
 	tcpPackager
-	TcpTransporter
+	tcpTransporter
 }
 
 // NewTCPClientHandler allocates a new TCPClientHandler.
@@ -126,8 +126,8 @@ func (mb *tcpPackager) Decode(adu []byte) (pdu *ProtocolDataUnit, err error) {
 	return
 }
 
-// TcpTransporter implements Transporter interface.
-type TcpTransporter struct {
+// tcpTransporter implements Transporter interface.
+type tcpTransporter struct {
 	// Connect string
 	Address string
 	// Connect & Read timeout
@@ -145,7 +145,7 @@ type TcpTransporter struct {
 }
 
 // Send sends data to server and ensures response length is greater than header length.
-func (mb *TcpTransporter) Send(aduRequest []byte) (aduResponse []byte, err error) {
+func (mb *tcpTransporter) Send(aduRequest []byte) (aduResponse []byte, err error) {
 	mb.mu.Lock()
 	defer mb.mu.Unlock()
 
@@ -198,14 +198,14 @@ func (mb *TcpTransporter) Send(aduRequest []byte) (aduResponse []byte, err error
 
 // Connect establishes a new connection to the address in Address.
 // Connect and Close are exported so that multiple requests can be done with one session
-func (mb *TcpTransporter) Connect() error {
+func (mb *tcpTransporter) Connect() error {
 	mb.mu.Lock()
 	defer mb.mu.Unlock()
 
 	return mb.connect()
 }
 
-func (mb *TcpTransporter) connect() error {
+func (mb *tcpTransporter) connect() error {
 	if mb.conn == nil {
 		dialer := net.Dialer{Timeout: mb.Timeout}
 		conn, err := dialer.Dial("tcp", mb.Address)
@@ -217,7 +217,7 @@ func (mb *TcpTransporter) connect() error {
 	return nil
 }
 
-func (mb *TcpTransporter) startCloseTimer() {
+func (mb *tcpTransporter) startCloseTimer() {
 	if mb.IdleTimeout <= 0 {
 		return
 	}
@@ -229,7 +229,7 @@ func (mb *TcpTransporter) startCloseTimer() {
 }
 
 // Close closes current connection.
-func (mb *TcpTransporter) Close() error {
+func (mb *tcpTransporter) Close() error {
 	mb.mu.Lock()
 	defer mb.mu.Unlock()
 
@@ -238,7 +238,7 @@ func (mb *TcpTransporter) Close() error {
 
 // flush flushes pending data in the connection,
 // returns io.EOF if connection is closed.
-func (mb *TcpTransporter) flush(b []byte) (err error) {
+func (mb *tcpTransporter) flush(b []byte) (err error) {
 	if err = mb.conn.SetReadDeadline(time.Now()); err != nil {
 		return
 	}
@@ -252,14 +252,14 @@ func (mb *TcpTransporter) flush(b []byte) (err error) {
 	return
 }
 
-func (mb *TcpTransporter) logf(format string, v ...interface{}) {
+func (mb *tcpTransporter) logf(format string, v ...interface{}) {
 	if mb.Logger != nil {
 		mb.Logger.Printf(format, v...)
 	}
 }
 
 // closeLocked closes current connection. Caller must hold the mutex before calling this method.
-func (mb *TcpTransporter) close() (err error) {
+func (mb *tcpTransporter) close() (err error) {
 	if mb.conn != nil {
 		err = mb.conn.Close()
 		mb.conn = nil
@@ -268,7 +268,7 @@ func (mb *TcpTransporter) close() (err error) {
 }
 
 // closeIdle closes the connection if last activity is passed behind IdleTimeout.
-func (mb *TcpTransporter) closeIdle() {
+func (mb *tcpTransporter) closeIdle() {
 	mb.mu.Lock()
 	defer mb.mu.Unlock()
 
