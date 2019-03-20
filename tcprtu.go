@@ -15,17 +15,18 @@ type RtuTcpClientHandler struct {
 }
 
 // NewRTUClientHandler allocates and initializes a RTUClientHandler.
-func NewRtuTcpClientHandler(address string) *RtuTcpClientHandler {
+func NewRtuTcpClientHandler(address string, slaveID byte) *RtuTcpClientHandler {
 	handler := &RtuTcpClientHandler{}
 	handler.Address = address
 	handler.Timeout = tcpTimeout
 	handler.IdleTimeout = tcpIdleTimeout
+	handler.SlaveId = slaveID
 	return handler
 }
 
 // RTUClient creates RTU client with default handler and given connect string.
-func RtuTcpClient(address string) Client {
-	handler := NewRtuTcpClientHandler(address)
+func RtuTcpClient(address string, slaveID byte) Client {
+	handler := NewRtuTcpClientHandler(address, slaveID)
 	return NewClient(handler)
 }
 
@@ -67,6 +68,7 @@ func (mb *tcpRtuTransporer) Send(aduRequest []byte) (aduResponse []byte, err err
 		return
 	}
 	// Send data
+	log.Printf("req %x", aduRequest)
 	mb.logf("modbus: sending % x", aduRequest)
 	if _, err = mb.conn.Write(aduRequest); err != nil {
 		return
@@ -109,6 +111,7 @@ func (mb *tcpRtuTransporer) Send(aduRequest []byte) (aduResponse []byte, err err
 		return
 	}
 	aduResponse = data[:n]
+	log.Printf("res % x", aduResponse)
 	mb.logf("modbus: received % x\n", aduResponse)
 	return
 }
